@@ -11,28 +11,35 @@ module Lokka
         if theme_url =~ /^git:/
           user, theme_git = theme_url.split('/').last(2)
           theme_name = theme_git.split('.').first
-          FileUtils.makedirs 'tmp/git_themes'
-          FileUtils.chdir 'tmp/git_themes' do
-            exec_git(theme_url)
-            exts = settings.supported_templates.join(',')
-            view_paths =
-              Dir.glob("#{theme_name}/*.{#{exts}}").map do |path|
-                name, ext = path.split('.')
-                view = ::IO.respond_to?(:binread) ? ::IO.binread(path) : ::IO.read(path)
-                lines = view.count("\n") + 1
-                settings.templates["git:#{name}".to_sym] = [view, "git:#{path}", lines]
-                "git:#{path}"
-              end
-            screenshot_path = Dir.glob("#{theme_name}/screenshot.*").first
-            settings.git_themes[theme_name] = OpenStruct.new(
-              :git => theme_url,
-              :assets_root => "http://#{user}.github.com/#{theme_name}",
-              :view_paths => view_paths,
-              :screenshot => screenshot_path ? "http://#{user}.github.com/#{screenshot_path}": nil)
+          begin
+            FileUtils.makedirs 'tmp/git_themes'
+            FileUtils.chdir 'tmp/git_themes' do
+              exec_git(theme_url)
+              exts = settings.supported_templates.join(',')
+              view_paths =
+                Dir.glob("#{theme_name}/*.{#{exts}}").map do |path|
+                  name, ext = path.split('.')
+                  view = ::IO.respond_to?(:binread) ? ::IO.binread(path) : ::IO.read(path)
+                  lines = view.count("\n") + 1
+                  settings.templates["git:#{name}".to_sym] = [view, "git:#{path}", lines]
+                  "git:#{path}"
+                end
+              screenshot_path = Dir.glob("#{theme_name}/screenshot.*").first
+              settings.git_themes[theme_name] = OpenStruct.new(
+                :git => theme_url,
+                :assets_root => "http://#{user}.github.com/#{theme_name}",
+                :view_paths => view_paths,
+                :screenshot => screenshot_path ? "http://#{user}.github.com/#{screenshot_path}": nil)
+            end
+            flash[:notice] = 'Installed.'
+          rescue Bundler::GitError
+            flash[:notice] = 'Git error.'
+          ensure
+            FileUtils.rmtree 'tmp/git_themes', :secure => true
           end
-          FileUtils.rmtree 'tmp/git_themes', :secure => true
+        else
+          flash[:notice] = 'Invalid URL.'
         end
-        flash[:notice] = 'Installed.'
         redirect '/admin/plugins/git_themes'
       end
 
@@ -47,12 +54,12 @@ module Lokka
 
   module Helpers
     def exec_git(path)
-      command = %|clone "#{path}"|
+      command = %|clone "#{Shellwords.shellescape(path)}"|
       out = %x{git #{command}}
 
       if $?.exitstatus != 0
         msg = "Git error: command `git #{command}` in directory #{Dir.pwd} has failed."
-        msg << "\nIf this error persists you could try removing the cache directory '#{cache_path}'" if cached?
+        msg << "\nIf this error persists you could try removing the cache directory 'tmp/git_themes'"
         raise Bundler::GitError, msg
       end
       puts out # better way to debug?
@@ -95,5 +102,29 @@ module Lokka
         send(ext.to_sym, "git:#{@theme.name}/#{name}".to_sym, options, locals)
       end
     end
+  end
+end
+
+begin
+  require 'shellwords' # There exists on ruby 1.9.2
+rescue LoadError
+  module Shellwords
+    def shellescape(str)
+      # An empty argument will be skipped, so return empty quotes.
+      return "''" if str.empty?
+
+      str = str.dup
+
+      # Process as a single byte sequence because not all shell
+      # implementations are multibyte aware.
+      str.gsub!(/([^A-Za-z0-9_\-.,:\/@\n])/n, "\\\\\\1")
+
+      # A LF cannot be escaped with a backslash because a backslash + LF
+      # combo is regarded as line continuation and simply ignored.
+      str.gsub!(/\n/, "'\n'")
+
+      return str
+    end
+    module_function :shellescape
   end
 end

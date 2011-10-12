@@ -20,14 +20,14 @@ then click the theme to apply.
 このプラグインでは、*.erb, *.hamlなどのテンプレートだけをインストールし、その他のCSS、JavaScriptや画像ファイルはインストールしません。
 それらのファイルを反映させるためには、GitHub Pagesを有効にする必要があります。
 
-やり方は、 "gh-pages" という名前のブランチを作成してpushするだけです。テーマの例
+やり方は、 gh-pages という名前のブランチを作成してpushするだけです。デフォルトブランチも gh-pages にすることをおすすめします。
 
-* https://github.com/tkawa/lokkatheme-p0t
+テーマの例はこちら。
 
-を参考にしてください。
+* https://github.com/tkawa/lokka-theme-p0t
 
 ## Restrictions & Known Bugs
 
 * アンインストール機能が未実装です
 * インストールしたテーマはデータベースなどに保存していないので、アプリを停止すると消えます
-* テンプレートファイル（erb,hamlなど）は、サブディレクトリに置いたものはインストールされません
+* サブディレクトリに置いたものはインストールされません
