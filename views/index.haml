@@ -12,9 +12,9 @@
           .screenshot
             %span no screenshot
         #{theme.git}
-        %form{:action => "/admin/plugins/git_themes/#{theme_name}"}
+        %form{:action => "/admin/plugins/git_themes/#{theme_name}", :method => 'post'}
           %input{:type => 'hidden', :name => '_method', :value => 'delete'}
-          %input{:type => 'submit', :value => 'remove (not implemented)'}
+          %input{:type => 'submit', :value => 'remove'}
     - if settings.git_themes.blank?
       no theme installed
 %hr/

@@ -49,6 +49,19 @@ module Lokka
         flash[:notice] = t.theme_was_successfully_updated
         redirect '/admin/plugins/git_themes'
       end
+
+      app.delete '/admin/plugins/git_themes/:theme_name' do |theme_name|
+        settings.templates.delete_if {|k, v| k.to_s.start_with? "git:#{theme_name}/" }
+        settings.git_themes.delete(theme_name)
+        site = Site.first
+        if site.theme == theme_name
+          site.update(:theme => 'jarvi')
+          flash[:notice] = 'Removed and Changed theme to default.'
+        else
+          flash[:notice] = 'Removed.'
+        end
+        redirect '/admin/plugins/git_themes'
+      end
     end
   end
 
