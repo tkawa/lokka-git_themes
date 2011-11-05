@@ -46,7 +46,7 @@ module Lokka
       app.put '/admin/plugins/git_themes' do
         site = Site.first
         site.update(:theme => params[:title])
-        flash[:notice] = t.theme_was_successfully_updated
+        flash[:notice] = t('theme_was_successfully_updated')
         redirect '/admin/plugins/git_themes'
       end
 

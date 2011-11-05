@@ -4,10 +4,10 @@
     - settings.git_themes.each do |theme_name, theme|
       %li.theme{:class => selected_if(theme_name == Site.first.theme)}
         .title
-          = link_to theme_name, "/admin/plugins/git_themes?title=#{theme_name}", :confirm => t.are_you_sure, :method => 'put'
+          = link_to theme_name, "/admin/plugins/git_themes?title=#{theme_name}", :confirm => t('are_you_sure'), :method => 'put'
         - if theme.screenshot
           .screenshot
-            = link_to %|<img src="#{theme.screenshot}", width="240", height="170" />|, "/admin/plugins/git_themes?title=#{theme_name}", :confirm => t.may_i_change_the_theme, :method => 'put'
+            = link_to %|<img src="#{theme.screenshot}", width="240", height="170" />|, "/admin/plugins/git_themes?title=#{theme_name}", :confirm => t('may_i_change_the_theme'), :method => 'put'
         - else
           .screenshot
             %span no screenshot
